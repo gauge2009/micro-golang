@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
@@ -34,7 +33,7 @@ type Service interface {
 	/// <param name="ClassName">类名 如：this.GetType().FullName</param>
 	/// <param name="MethodName">方法名 如：MethodInfo.GetCurrentMethod().Name</param>
 	/// <param name="LocationDesc">描述信息【可空】</param>
-	DoTrace(SiteCode string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error)
+	DoTrace(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error)
 
 	// Concat a and b
 	Concat(a, b string) (string, error)
@@ -71,26 +70,30 @@ GO
 
 type Task_link_trace struct {
 	//gorm.Model
-	Key_id        string          `gorm:"size:36"`
-	Span_id       string          `gorm:"size:50"`
-	Trace_id      string          `gorm:"size:50"`
-	Biz_code      string          `gorm:"size:50"`
-	Parent_id     string          `gorm:"size:50"`
-	Operate_dt    time.Time       `gorm:"type:datetime"`
-	Operate_by    string          `gorm:"size:50"`
-	Level         string          `gorm:"size:10"`
-	Node_id       string          `gorm:"size:50"`
-	Thread_id     decimal.Decimal `gorm:"type:decimal(18,4)"`
-	Class_name    string          `gorm:"size:100"`
-	Method_name   string          `gorm:"size:100"`
-	Location_desc string          `gorm:"size:200"`
+	Key_id        string    `gorm:"size:36"`
+	Span_id       string    `gorm:"size:50"`
+	Trace_id      string    `gorm:"size:50"`
+	Biz_code      string    `gorm:"size:50"`
+	Parent_id     string    `gorm:"size:50"`
+	Operate_dt    time.Time `gorm:"type:datetime"`
+	Operate_by    string    `gorm:"size:50"`
+	Level         string    `gorm:"size:10"`
+	Node_id       string    `gorm:"size:50"`
+	Thread_id     int       `gorm:"int"`
+	Class_name    string    `gorm:"size:100"`
+	Method_name   string    `gorm:"size:100"`
+	Location_desc string    `gorm:"size:200"`
+}
+
+func (this *Task_link_trace) TableName() string {
+	return "task_link_trace"
 }
 
 //ArithmeticService implement Service interface
 type GipkinService struct {
 }
 
-func (s GipkinService) DoTrace(SiteCode string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error) {
+func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error) {
 	decimal.DivisionPrecision = 4 // 保留4位小数，如有更多位，则进行四舍五入保留两位小数
 	// github.com/denisenkom/go-mssqldb
 	dsn := "sqlserver://sa:sparksubmit666@192.168.1.7/hive?database=ai_cop"
@@ -105,15 +108,28 @@ func (s GipkinService) DoTrace(SiteCode string, SpanID string, TraceID string, B
 	fmt.Println(now)
 	t2, err := time.ParseInLocation("2006-01-02 15:04:05", now, time.Local)
 
-	var num1 float64 = 3.14
-	rh := decimal.NewFromFloat(num1)
-	// Create
-	db.Create(&Task_link_trace{Key_id: uuid.NewV4().String(), Span_id: SpanID,
+	//var num1 float64 = 3.14
+	//rh := decimal.NewFromFloat(num1)
+
+	// Create  uuid.NewV4().String()
+	result := db.Create(&Task_link_trace{Key_id: KeyID, Span_id: SpanID,
 		Trace_id: TraceID, Biz_code: BizCode, Parent_id: ParentID, Operate_dt: t2, Operate_by: "sys",
 		Level: Level, Node_id: "worker_0x",
-		Thread_id:  rh,
+		Thread_id:  1,
 		Class_name: ClassName, Method_name: MethodName, Location_desc: LocationDesc,
 	})
+	//result :=  db.Create(&Task_link_trace{Key_id: "1111-22-33333", Span_id: SpanID })
+	if result != nil {
+		if result.Error != nil {
+			fmt.Println("result.Error ! = %v+\n", result.Error)
+		}
+		fmt.Println("RowsAffected = %v+\n", result.RowsAffected)
+	}
+
+	// Read
+	var task_link_trace Task_link_trace
+
+	db.First(&task_link_trace, "key_id = ?", "1fe7c255-84ae-4224-acbd-c2b116430b9e")
 
 	return "success", nil
 }

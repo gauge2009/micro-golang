@@ -3,8 +3,8 @@ package endpoint
 import (
 	"context"
 	"errors"
+	"github.com/gauge2009/micro-golang/ch10-resiliency/string-service/service"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/longjoy/micro-go-book/ch10-resiliency/string-service/service"
 	"strings"
 )
 

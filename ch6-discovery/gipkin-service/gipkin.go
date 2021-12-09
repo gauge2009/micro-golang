@@ -4,15 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/longjoy/micro-go-book/ch6-discovery/string-service/config"
-	"github.com/longjoy/micro-go-book/ch6-discovery/string-service/endpoint"
-	//"github.com/longjoy/micro-go-book/ch6-discovery/string-service/service"
-	"github.com/longjoy/micro-go-book/ch6-discovery/string-service/transport"
-	"github.com/longjoy/micro-go-book/common/discover"
+	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/config"
+	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/endpoint"
+	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/plugins"
+	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/transport"
+	"github.com/gauge2009/micro-golang/common/discover"
 
-	"service"
-
-	"github.com/satori/go.uuid"
+	////"service"
+	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/service"
+	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,18 +22,18 @@ import (
 
 func main() {
 
-	gipkinService := service.GipkinService{}
-	gipkinService.DoTrace("company1", "RabbitMQ_To_Worker", "15fb894b-1b8b-444e-9768-350660120f54",
-		"ATSINSPECT", "AtsTaskService", "Debug", "HRLink.BackendService.AtsInspectService",
-		"AtsInspectExecute", "RabbitMQInitialize begin")
+	//gipkinService := service.GipkinService{}
+	//gipkinService.DoTrace("111-1111-22222", "RabbitMQ_To_Worker", "15fb894b-1b8b-444e-9768-350660120f54",
+	//	"ATSINSPECT", "AtsTaskService", "Debug", "HRLink.BackendService.AtsInspectService",
+	//	"AtsInspectExecute", "RabbitMQInitialize begin")
 
 	// 获取命令行参数
 	var (
-		servicePort = flag.Int("service.port", 21129, "service port")
+		servicePort = flag.Int("service.port", 21212, "service port")
 		serviceHost = flag.String("service.host", "127.0.0.1", "service host")
 		consulPort  = flag.Int("consul.port", 8500, "consul port")
 		consulHost  = flag.String("consul.host", "127.0.0.1", "consul host")
-		serviceName = flag.String("service.name", "gipkin", "service name")
+		serviceName = flag.String("service.name", "Gipkin", "service name")
 	)
 
 	flag.Parse()
@@ -51,7 +51,7 @@ func main() {
 	var svc service.Service
 	svc = service.GipkinService{}
 	// add logging middleware
-	//svc = plugins.LoggingMiddleware(config.KitLogger)(svc)
+	svc = plugins.LoggingMiddleware(config.KitLogger)(svc)
 
 	stringEndpoint := endpoint.MakeStringEndpoint(svc)
 
@@ -68,11 +68,12 @@ func main() {
 	r := transport.MakeHttpHandler(ctx, endpts, config.KitLogger)
 
 	// instanceId := *serviceName + "-" + uuid.NewV4().String()
-	uid, err := uuid.NewV4()
-	if err != nil {
-		fmt.Println("uuid can not be created: %v\n", err)
-	}
-	instanceId := *serviceName + "-" + uid.String()
+	//uid, err := uuid.NewV4()
+	//if err != nil {
+	//	fmt.Println("uuid can not be created: %v\n", err)
+	//}
+	//instanceId := *serviceName + "-" + uid.String()
+	instanceId := *serviceName + "-" + uuid.NewV4().String()
 	//http server
 	go func() {
 
@@ -97,4 +98,5 @@ func main() {
 	//服务退出取消注册
 	discoveryClient.DeRegister(instanceId, config.Logger)
 	config.Logger.Println(error)
+
 }

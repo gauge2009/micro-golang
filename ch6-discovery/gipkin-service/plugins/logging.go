@@ -1,8 +1,8 @@
 package plugins
 
 import (
+	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/service"
 	"github.com/go-kit/kit/log"
-	"github.com/longjoy/micro-go-book/ch6-discovery/string-service/service"
 	"time"
 )
 
