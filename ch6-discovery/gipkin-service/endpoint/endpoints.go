@@ -49,6 +49,8 @@ func MakeStringEndpoint(svc service.Service) endpoint.Endpoint {
 			res, _ = svc.Concat(a, b)
 		} else if strings.EqualFold(req.RequestType, "Diff") {
 			res, _ = svc.Diff(a, b)
+		} else if strings.EqualFold(req.RequestType, "DoTrace") {
+			res, _ = svc.DoTrace(a, b, "", "", "", "", "", "", "")
 		} else {
 			return nil, ErrInvalidRequestType
 		}

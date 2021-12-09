@@ -68,12 +68,12 @@ func main() {
 	r := transport.MakeHttpHandler(ctx, endpts, config.KitLogger)
 
 	// instanceId := *serviceName + "-" + uuid.NewV4().String()
-	//uid, err := uuid.NewV4()
-	//if err != nil {
-	//	fmt.Println("uuid can not be created: %v\n", err)
-	//}
-	//instanceId := *serviceName + "-" + uid.String()
-	instanceId := *serviceName + "-" + uuid.NewV4().String()
+	uid, err := uuid.NewV4()
+	if err != nil {
+		fmt.Println("uuid can not be created: %v\n", err)
+	}
+	instanceId := *serviceName + "-" + uid.String()
+	//instanceId := *serviceName + "-" + uuid.NewV4().String()
 	//http server
 	go func() {
 
