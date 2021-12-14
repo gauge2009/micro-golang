@@ -26,13 +26,27 @@ func MakeHttpHandler(ctx context.Context, endpoints endpoint.StringEndpoints, lo
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 	///http://127.0.0.1:10085/op/Diff/break/Bread
-	r.Methods("POST").Path("/op/{type}/{a}/{b}").Handler(kithttp.NewServer(
+	//r.Methods("POST").Path("/op/{type}/{a}/{b}").Handler(kithttp.NewServer(
+	//	endpoints.StringEndpoint,
+	//	decodeStringRequest,
+	//	encodeStringResponse,
+	//	options...,
+	//))
+	//"KeyID":"gauge212112141242",
+	//	"SpanID":"RabbitMQ_To_Worker",
+	//	"TraceID":"12345678-415d-40e1-987a-17a24f83f47c",
+	//	"BizCode":"ATSINSPECT-ATSINSPECT",
+	//	"ParentID":"AtsTaskService",
+	//	"Level":"Debug",
+	//	"ClassName":"HRLink.BackendService.AtsInspectService",
+	//	"MethodName":"AtsInspectExecute",
+	//	"LocationDesc":"考勤审查持久化完成"
+	r.Methods("POST").Path("/op/{type}/{KeyID}/{SpanID}/{TraceID}/{BizCode}/{ParentID}/{Level}/{ClassName}/{MethodName}/{LocationDesc}").Handler(kithttp.NewServer(
 		endpoints.StringEndpoint,
 		decodeStringRequest,
 		encodeStringResponse,
 		options...,
 	))
-
 	r.Path("/metrics").Handler(promhttp.Handler())
 
 	// create health check handler
@@ -48,26 +62,61 @@ func MakeHttpHandler(ctx context.Context, endpoints endpoint.StringEndpoints, lo
 
 // decodeStringRequest decode request params to struct
 func decodeStringRequest(_ context.Context, r *http.Request) (interface{}, error) {
+
 	vars := mux.Vars(r)
 	requestType, ok := vars["type"]
 	if !ok {
 		return nil, ErrorBadRequest
 	}
 
-	pa, ok := vars["a"]
+	pKeyID, ok := vars["KeyID"]
 	if !ok {
 		return nil, ErrorBadRequest
 	}
 
-	pb, ok := vars["b"]
+	pSpanID, ok := vars["SpanID"]
 	if !ok {
 		return nil, ErrorBadRequest
 	}
-
+	pTraceID, ok := vars["TraceID"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
+	pBizCode, ok := vars["BizCode"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
+	pParentID, ok := vars["ParentID"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
+	pLevel, ok := vars["Level"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
+	pClassName, ok := vars["ClassName"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
+	pMethodName, ok := vars["MethodName"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
+	pLocationDesc, ok := vars["LocationDesc"]
+	if !ok {
+		return nil, ErrorBadRequest
+	}
 	return endpoint.StringRequest{
-		RequestType: requestType,
-		A:           pa,
-		B:           pb,
+		RequestType:  requestType,
+		KeyID:        pKeyID,
+		SpanID:       pSpanID,
+		TraceID:      pTraceID,
+		BizCode:      pBizCode,
+		ParentID:     pParentID,
+		Level:        pLevel,
+		ClassName:    pClassName,
+		MethodName:   pMethodName,
+		LocationDesc: pLocationDesc,
 	}, nil
 }
 

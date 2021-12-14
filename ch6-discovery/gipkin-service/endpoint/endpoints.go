@@ -21,9 +21,16 @@ var (
 
 // StringRequest define request struct
 type StringRequest struct {
-	RequestType string `json:"request_type"`
-	A           string `json:"a"`
-	B           string `json:"b"`
+	RequestType  string `json:"request_type"`
+	KeyID        string `json:"KeyID"`
+	SpanID       string `json:"SpanID"`
+	TraceID      string `json:"TraceID"`
+	BizCode      string `json:"BizCode"`
+	ParentID     string `json:"ParentID"`
+	Level        string `json:"Level"`
+	ClassName    string `json:"ClassName"`
+	MethodName   string `json:"MethodName"`
+	LocationDesc string `json:"LocationDesc"`
 }
 
 // StringResponse define response struct
@@ -33,24 +40,34 @@ type StringResponse struct {
 }
 
 // MakeStringEndpoint make endpoint
+//	DoTrace(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error)
 func MakeStringEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(StringRequest)
 
 		var (
-			res, a, b string
-			opError   error
+			res, KeyID, SpanID, TraceID, BizCode, ParentID, Level, ClassName, MethodName, LocationDesc string
+			opError                                                                                    error
 		)
 
-		a = req.A
-		b = req.B
+		KeyID = req.KeyID
+		SpanID = req.SpanID
+		TraceID = req.TraceID
+		BizCode = req.BizCode
+		ParentID = req.ParentID
+		Level = req.Level
+		ClassName = req.ClassName
+		MethodName = req.MethodName
+		LocationDesc = req.LocationDesc
+
 		// 根据请求操作类型请求具体的操作方法
-		if strings.EqualFold(req.RequestType, "Concat") {
-			res, _ = svc.Concat(a, b)
-		} else if strings.EqualFold(req.RequestType, "Diff") {
-			res, _ = svc.Diff(a, b)
-		} else if strings.EqualFold(req.RequestType, "DoTrace") {
-			res, _ = svc.DoTrace(a, b, "", "", "", "", "", "", "")
+		//if strings.EqualFold(req.RequestType, "Concat") {
+		//	res, _ = svc.Concat(a, b)
+		//} else if strings.EqualFold(req.RequestType, "Diff") {
+		//	res, _ = svc.Diff(a, b)
+		//} else
+		if strings.EqualFold(req.RequestType, "DoTrace") {
+			res, _ = svc.DoTrace(KeyID, SpanID, TraceID, BizCode, ParentID, Level, ClassName, MethodName, LocationDesc)
 		} else {
 			return nil, ErrInvalidRequestType
 		}

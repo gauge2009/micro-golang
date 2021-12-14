@@ -67,12 +67,16 @@ func main() {
 	//创建http.Handler
 	r := transport.MakeHttpHandler(ctx, endpts, config.KitLogger)
 
+	// 调试请打开注释
 	// instanceId := *serviceName + "-" + uuid.NewV4().String()
+
+	// exe发布请打开注释
 	uid, err := uuid.NewV4()
 	if err != nil {
 		fmt.Println("uuid can not be created: %v\n", err)
 	}
 	instanceId := *serviceName + "-" + uid.String()
+
 	//instanceId := *serviceName + "-" + uuid.NewV4().String()
 	//http server
 	go func() {
@@ -80,7 +84,7 @@ func main() {
 		config.Logger.Println("Http Server start at port:" + strconv.Itoa(*servicePort))
 		//启动前执行注册
 		if !discoveryClient.Register(*serviceName, instanceId, "/health", *serviceHost, *servicePort, nil, config.Logger) {
-			config.Logger.Printf("string-service for service %s failed.", serviceName)
+			config.Logger.Printf("gipkin-service for service %s failed.", serviceName)
 			// 注册失败，服务启动失败
 			os.Exit(-1)
 		}
