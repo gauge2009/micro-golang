@@ -68,7 +68,7 @@ func main() {
 	r := transport.MakeHttpHandler(ctx, endpts, config.KitLogger)
 
 	// ■■■ 调试请打开注释  ■■■
-	//  instanceId := *serviceName + "-" + uuid.NewV4().String()
+	// instanceId := *serviceName + "-" + uuid.NewV4().String()
 
 	// ■■■ exe发布请打开注释 ■■■
 	uid, err := uuid.NewV4()
