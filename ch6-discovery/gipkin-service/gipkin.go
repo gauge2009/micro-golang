@@ -68,14 +68,14 @@ func main() {
 	r := transport.MakeHttpHandler(ctx, endpts, config.KitLogger)
 
 	// ■■■ 调试请打开注释  ■■■
-	instanceId := *serviceName + "-" + uuid.NewV4().String()
+	//instanceId := *serviceName + "-" + uuid.NewV4().String()
 
 	// ■■■ exe发布请打开注释 ■■■
-	//uid, err := uuid.NewV4()
-	//if err != nil {
-	//	fmt.Println("uuid can not be created: %v\n", err)
-	//}
-	//instanceId := *serviceName + "-" + uid.String()
+	uid, err := uuid.NewV4()
+	if err != nil {
+		fmt.Println("uuid can not be created: %v\n", err)
+	}
+	instanceId := *serviceName + "-" + uid.String()
 
 	//instanceId := *serviceName + "-" + uuid.NewV4().String()
 	//http server
