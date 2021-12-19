@@ -131,6 +131,8 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 
 	db.First(&task_link_trace, "key_id = ?", "1fe7c255-84ae-4224-acbd-c2b116430b9e")
 
+	//Gedis
+
 	return "success", nil
 }
 
