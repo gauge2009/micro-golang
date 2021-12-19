@@ -1,9 +1,10 @@
 package main
 
 import (
-	"../gedis-benchmark/cacheClient"
 	"flag"
 	"fmt"
+	//"../gedis-benchmark/cacheClient"
+	"github.com/gauge2009/micro-golang/gedis-benchmark/cacheClient"
 )
 
 func main() {

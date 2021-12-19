@@ -2,12 +2,15 @@ package service
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"strings"
 	"time"
+	//"../gedis-benchmark/cacheClient"
+	"github.com/gauge2009/micro-golang/gedis-benchmark/cacheClient"
 )
 
 // Service constants
@@ -132,8 +135,27 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 	db.First(&task_link_trace, "key_id = ?", "1fe7c255-84ae-4224-acbd-c2b116430b9e")
 
 	//Gedis
+	gedis_client_demo()
 
 	return "success", nil
+}
+
+func gedis_client_demo() {
+	server := flag.String("h", "localhost", "cache server address")
+	op := flag.String("c", "get", "command, could be get/set/del")
+	key := flag.String("k", "info2", "key")
+	value := flag.String("v", "gauge2009", "value")
+	flag.Parse()
+	client := cacheClient.New("tcp", *server)
+	cmd := &cacheClient.Cmd{*op, *key, *value, nil}
+	//./client -c set -k info1 -v  '{  \"result\": \"success\",   \"error\": null }'
+	//./client -c get -k info1
+	client.Run(cmd)
+	if cmd.Error != nil {
+		fmt.Println("error:", cmd.Error)
+	} else {
+		fmt.Println(cmd.Value)
+	}
 }
 
 func (s GipkinService) Concat(a, b string) (string, error) {

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"./cacheClient"
+	//"./cacheClient"
 	"flag"
 	"fmt"
+	"github.com/gauge2009/micro-golang/gedis-benchmark/cacheClient"
 	"math/rand"
 	"strings"
 	"time"

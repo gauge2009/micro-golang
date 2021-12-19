@@ -1,7 +1,8 @@
 package tcp
 
 import (
-	"../cache"
+	//"../cache"
+	"github.com/gauge2009/micro-golang/gedis/server/cache"
 	"net"
 )
 
