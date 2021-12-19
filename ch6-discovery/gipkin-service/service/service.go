@@ -96,7 +96,7 @@ type GipkinService struct {
 func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error) {
 	decimal.DivisionPrecision = 4 // 保留4位小数，如有更多位，则进行四舍五入保留两位小数
 	// github.com/denisenkom/go-mssqldb
-	dsn := "sqlserver://sa:sparksubmit666@192.168.1.7/hive?database=ai_cop"
+	dsn := "sqlserver://sa:sparksubmit666@localhost/hive?database=ai_cop"
 	db, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
 	//db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
