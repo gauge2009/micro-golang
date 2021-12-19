@@ -1,12 +1,13 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
+	"log"
 	"strings"
 	"time"
 	//"../gedis-benchmark/cacheClient"
@@ -115,12 +116,14 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 	//rh := decimal.NewFromFloat(num1)
 
 	// Create  uuid.NewV4().String()
-	result := db.Create(&Task_link_trace{Key_id: KeyID, Span_id: SpanID,
-		Trace_id: TraceID, Biz_code: BizCode, Parent_id: ParentID, Operate_dt: t2, Operate_by: "sys",
-		Level: Level, Node_id: "worker_0x",
-		Thread_id:  1,
-		Class_name: ClassName, Method_name: MethodName, Location_desc: LocationDesc,
-	})
+	entity := BuildEntity(KeyID, SpanID, TraceID, BizCode, ParentID, t2, Level, ClassName, MethodName, LocationDesc)
+	//result := db.Create(&Task_link_trace{Key_id: KeyID, Span_id: SpanID,
+	//	Trace_id: TraceID, Biz_code: BizCode, Parent_id: ParentID, Operate_dt: t2, Operate_by: "sys",
+	//	Level: Level, Node_id: "worker_0x",
+	//	Thread_id:  1,
+	//	Class_name: ClassName, Method_name: MethodName, Location_desc: LocationDesc,
+	//})
+	result := db.Create(entity)
 	//result :=  db.Create(&Task_link_trace{Key_id: "1111-22-33333", Span_id: SpanID })
 	if result != nil {
 		if result.Error != nil {
@@ -131,23 +134,40 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 
 	// Read
 	var task_link_trace Task_link_trace
-
 	db.First(&task_link_trace, "key_id = ?", "1fe7c255-84ae-4224-acbd-c2b116430b9e")
 
 	//Gedis
-	gedis_client_set("gauge2009_demo_key1", t2.String())
+	input := BuildEntity(KeyID, SpanID, TraceID, BizCode, ParentID, t2, Level, ClassName, MethodName, LocationDesc)
+	inputbytes, err0 := json.Marshal(input)
+	if err0 != nil {
+		log.Panicln("decode  failed:", string(inputbytes), err0)
+	}
+	fmt.Println(input)
+	fmt.Println(string(inputbytes))
+	gedis_client_set("gipkin:"+KeyID, string(inputbytes))
 
 	return "success", nil
 }
 
+func BuildEntity(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, CreateDatetime time.Time, Level string, ClassName string, MethodName string, LocationDesc string) *Task_link_trace {
+	return &Task_link_trace{Key_id: KeyID, Span_id: SpanID,
+		Trace_id: TraceID, Biz_code: BizCode, Parent_id: ParentID, Operate_dt: CreateDatetime, Operate_by: "sys",
+		Level: Level, Node_id: "worker_0x",
+		Thread_id:  1,
+		Class_name: ClassName, Method_name: MethodName, Location_desc: LocationDesc,
+	}
+}
+
 func gedis_client_set(gedis_key, gedis_val string) {
-	server := flag.String("h", "localhost", "cache server address")
-	op := flag.String("c", "set", "command, could be get/set/del")
-	key := flag.String("k", gedis_key, "key")
-	value := flag.String("v", gedis_val, "value")
-	flag.Parse()
-	client := cacheClient.New("tcp", *server)
-	cmd := &cacheClient.Cmd{*op, *key, *value, nil}
+	//server := flag.String("h", "localhost", "cache server address")
+	//op := flag.String("c", "set", "command, could be get/set/del")
+	//key := flag.String("k", gedis_key, "key")
+	//value := flag.String("v", gedis_val, "value")
+	//flag.Parse()
+	//client := cacheClient.New("tcp", *server)
+	client := cacheClient.New("tcp", "localhost")
+	//cmd := &cacheClient.Cmd{*op, *key, *value, nil}
+	cmd := &cacheClient.Cmd{"set", gedis_key, gedis_val, nil}
 	//./client -c set -k info1 -v  '{  \"result\": \"success\",   \"error\": null }'
 	//./client -c get -k info1
 	client.Run(cmd)
