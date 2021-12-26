@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
@@ -145,6 +147,7 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 	fmt.Println(input)
 	fmt.Println(string(inputbytes))
 	gedis_client_set("gipkin:"+KeyID, string(inputbytes))
+	getcd_client_set("gipkin:"+KeyID, string(inputbytes))
 
 	return "success", nil
 }
@@ -175,6 +178,40 @@ func gedis_client_set(gedis_key, gedis_val string) {
 		fmt.Println("error:", cmd.Error)
 	} else {
 		fmt.Println(cmd.Value)
+	}
+}
+
+func getcd_client_set(gedis_key, gedis_val string) {
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"127.0.0.1:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		// handle error!
+		fmt.Printf("connect to etcd failed, err:%v\n", err)
+		return
+	}
+	fmt.Println("connect to etcd success")
+	defer cli.Close()
+	// put
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	//_, err = cli.Put(ctx, "name", "gaugest2009")
+	_, err = cli.Put(ctx, gedis_key, gedis_val)
+	cancel()
+	if err != nil {
+		fmt.Printf("put to getcd failed, err:%v\n", err)
+		return
+	}
+	// get
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	resp, err := cli.Get(ctx, gedis_key)
+	cancel()
+	if err != nil {
+		fmt.Printf("get from getcd failed, err:%v\n", err)
+		return
+	}
+	for _, ev := range resp.Kvs {
+		fmt.Printf("%s:%s\n", ev.Key, ev.Value)
 	}
 }
 
