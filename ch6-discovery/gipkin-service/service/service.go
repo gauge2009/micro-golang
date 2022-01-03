@@ -5,7 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
+	zipkin "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"go.etcd.io/etcd/clientv3"
+	"os"
+
 	//"github.com/coreos/etcd/clientv3"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/sqlserver"
@@ -15,6 +19,30 @@ import (
 	"time"
 	//"../gedis-benchmark/cacheClient"
 	"github.com/gauge2009/micro-golang/gedis-benchmark/cacheClient"
+)
+
+/// 用于链路跟踪：
+const (
+	// Our service name.
+	serviceName = "client"
+
+	// Host + port of our service.
+	hostPort = "0.0.0.0:0"
+
+	// Endpoint to send Zipkin spans to.
+	zipkinHTTPEndpoint = "http://localhost:9411/api/v1/spans"
+
+	// Debug mode.
+	debug = false
+
+	// Base endpoint of our SVC1 service.
+	svc1Endpoint = "http://localhost:61001"
+
+	// same span can be set to true for RPC style spans (Zipkin V1) vs Node style (OpenTracing)
+	sameSpan = true
+
+	// make Tracer generate 128 bit traceID's for root spans.
+	traceID128Bit = true
 )
 
 // Service constants
@@ -100,7 +128,9 @@ func (this *Task_link_trace) TableName() string {
 type GipkinService struct {
 }
 
+//http://127.0.0.1:21212/op/DoTrace/gauge202112301916/RabbitMQ_To_Worker/12345678-415d-40e1-987a-17a24f83f47c/ATSINSPECT/AtsTaskService/Debug/HRLink.BackendService.AtsInspectService/AtsInspectExecute/持久化完成
 func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error) {
+	Trace(BizCode)
 	decimal.DivisionPrecision = 4 // 保留4位小数，如有更多位，则进行四舍五入保留两位小数
 	// github.com/denisenkom/go-mssqldb
 	dsn := "sqlserver://sa:sparksubmit666@localhost/hive?database=ai_cop"
@@ -135,6 +165,9 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 		fmt.Println("RowsAffected = %v+\n", result.RowsAffected)
 	}
 
+	/// 调用zipkin
+	Trace(BizCode)
+
 	// Read
 	var task_link_trace Task_link_trace
 	db.First(&task_link_trace, "key_id = ?", "1fe7c255-84ae-4224-acbd-c2b116430b9e")
@@ -151,6 +184,62 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 	getcd_client_set("gipkin:"+KeyID, string(inputbytes))
 
 	return "success", nil
+}
+
+// 链路跟踪主方法
+func Trace(serviceName string) {
+	// Create our HTTP collector.
+	collector, err := zipkin.NewHTTPCollector(zipkinHTTPEndpoint)
+	if err != nil {
+		fmt.Printf("unable to create Zipkin HTTP collector: %+v\n", err)
+		os.Exit(-1)
+	}
+	// Create our recorder.
+	//recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
+	recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
+	// Create our tracer.
+	tracer, err := zipkin.NewTracer(
+		recorder,
+		zipkin.ClientServerSameSpan(sameSpan),
+		zipkin.TraceID128Bit(traceID128Bit),
+	)
+	if err != nil {
+		fmt.Printf("unable to create Zipkin tracer: %+v\n", err)
+		os.Exit(-1)
+	}
+
+	// Explicitly set our tracer to be the default tracer.
+	opentracing.InitGlobalTracer(tracer)
+
+	//// Create Client to svc1 Service
+	//client := svc1.NewHTTPClient(tracer, svc1Endpoint)
+
+	// Create Root Span for duration of the interaction with svc1
+	span := opentracing.StartSpan("Run")
+
+	// Put root span in context so it will be used in our calls to the client.
+	ctx := opentracing.ContextWithSpan(context.Background(), span)
+
+	//// Call the Concat Method
+	span.LogEvent("Call step1")
+	//res1, err := client.Concat(ctx, "Hello", " World!")
+	//fmt.Printf("Concat: %s Err: %+v\n", res1, err)
+	span = opentracing.SpanFromContext(ctx)
+	span.SetTag("step1", serviceName)
+
+	//
+	//// Call the Sum Method
+	span.LogEvent("Call step2")
+	//res2, err := client.Sum(ctx, 10, 20)
+	//fmt.Printf("Sum: %d Err: %+v\n", res2, err)
+	span = opentracing.SpanFromContext(ctx)
+	span.SetTag("step2", serviceName)
+
+	// Finish our CLI span
+	span.Finish()
+
+	// Close collector to ensure spans are sent before exiting.
+	collector.Close()
 }
 
 func BuildEntity(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, CreateDatetime time.Time, Level string, ClassName string, MethodName string, LocationDesc string) *Task_link_trace {

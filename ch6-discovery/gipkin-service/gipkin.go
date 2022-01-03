@@ -9,7 +9,6 @@ import (
 	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/plugins"
 	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/transport"
 	"github.com/gauge2009/micro-golang/common/discover"
-
 	////"service"
 	"github.com/gauge2009/micro-golang/ch6-discovery/gipkin-service/service"
 	uuid "github.com/satori/go.uuid"
@@ -53,6 +52,7 @@ func main() {
 	// add logging middleware
 	svc = plugins.LoggingMiddleware(config.KitLogger)(svc)
 
+	///   ■■■ ■■■ MakeStringEndpoint ■■■ ■■■MakeStringEndpoint ■■■ ■■■MakeStringEndpoint ■■■ ■■■MakeStringEndpoint
 	stringEndpoint := endpoint.MakeStringEndpoint(svc)
 
 	//创建健康检查的Endpoint
@@ -68,14 +68,14 @@ func main() {
 	r := transport.MakeHttpHandler(ctx, endpts, config.KitLogger)
 
 	// ■■■ 调试请打开注释  ■■■
-	//instanceId := *serviceName + "-" + uuid.NewV4().String()
+	instanceId := *serviceName + "-" + uuid.NewV4().String()
 
 	// ■■■ exe发布请打开注释 ■■■
-	uid, err := uuid.NewV4()
-	if err != nil {
-		fmt.Println("uuid can not be created: %v\n", err)
-	}
-	instanceId := *serviceName + "-" + uid.String()
+	//uid, err := uuid.NewV4()
+	//if err != nil {
+	//	fmt.Println("uuid can not be created: %v\n", err)
+	//}
+	//instanceId := *serviceName + "-" + uid.String()
 
 	//instanceId := *serviceName + "-" + uuid.NewV4().String()
 	//http server

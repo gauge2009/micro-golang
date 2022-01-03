@@ -21,9 +21,9 @@ func main() {
 
 	// 创建环境变量
 	var (
-		consulHost = flag.String("consul.host", "114.67.98.210", "consul server ip address")
+		consulHost = flag.String("consul.host", "127.0.0.1", "consul server ip address")
 		consulPort = flag.String("consul.port", "8500", "consul server port")
-		zipkinURL  = flag.String("zipkin.url", "http://114.67.98.210:9411/api/v2/spans", "Zipkin server url")
+		zipkinURL  = flag.String("zipkin.url", "http://127.0.0.1:9411/api/v2/spans", "Zipkin server url")
 	)
 	flag.Parse()
 
@@ -39,7 +39,7 @@ func main() {
 	{
 		var (
 			err           error
-			hostPort      = "localhost:9090"
+			hostPort      = "localhost:9292"
 			serviceName   = "gateway-service"
 			useNoopTracer = (*zipkinURL == "")
 			reporter      = zipkinhttp.NewReporter(*zipkinURL)
@@ -90,8 +90,8 @@ func main() {
 
 	//开始监听
 	go func() {
-		logger.Log("transport", "HTTP", "addr", "9090")
-		errc <- http.ListenAndServe(":9090", handler)
+		logger.Log("transport", "HTTP", "addr", "9292")
+		errc <- http.ListenAndServe(":9292", handler)
 	}()
 
 	// 开始运行，等待结束

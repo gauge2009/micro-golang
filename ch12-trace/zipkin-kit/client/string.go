@@ -3,9 +3,13 @@ package client
 import (
 	grpctransport "github.com/go-kit/kit/transport/grpc"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/pb"
-	endpts "github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/endpoint"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/service"
+
+	//"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/pb"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/pb"
+	//endpts "github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/endpoint"
+	endpts "github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/endpoint"
+	//"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/service"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/service"
 	"google.golang.org/grpc"
 )
 

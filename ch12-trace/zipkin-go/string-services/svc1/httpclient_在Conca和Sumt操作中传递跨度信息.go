@@ -23,6 +23,7 @@ type client struct {
 	traceRequest middleware.RequestFunc
 }
 
+/// 注意：这是API调用的方式去调用SVC1， 这一步主要目的是在HTTP 请求头里面做文章把traceid放进去
 // Concat implements our Service interface.
 func (c *client) Concat(ctx context.Context, a, b string) (string, error) {
 	// create new span using span found in context as parent (if none is found,
@@ -41,7 +42,8 @@ func (c *client) Concat(ctx context.Context, a, b string) (string, error) {
 		return "", err
 	}
 
-	// use our middleware to propagate our trace
+	// use our middleware to 传播 propagate our trace
+	// 这是在HTTP 请求头里面做文章
 	req = c.traceRequest(req.WithContext(ctx))
 
 	// execute the HTTP request
@@ -115,6 +117,7 @@ func (c *client) Sum(ctx context.Context, a, b int64) (int64, error) {
 
 // NewHTTPClient returns a new client instance to our svc1 using the HTTP
 // transport.
+// 传递跨度信息
 func NewHTTPClient(tracer opentracing.Tracer, baseURL string) Service {
 	return &client{
 		baseURL:      baseURL,

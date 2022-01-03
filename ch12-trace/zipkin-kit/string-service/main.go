@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/pb"
+	edpts "github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/endpoint"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/service"
 	"github.com/go-kit/kit/log"
 	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/pb"
-	edpts "github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/endpoint"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/service"
 	"github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
 	"google.golang.org/grpc"
@@ -22,11 +22,11 @@ import (
 func main() {
 
 	var (
-		consulHost  = flag.String("consul.host", "114.67.98.210", "consul ip address")
+		consulHost  = flag.String("consul.host", "127.0.0.1", "consul ip address")
 		consulPort  = flag.String("consul.port", "8500", "consul port")
 		serviceHost = flag.String("service.host", "localhost", "service ip address")
 		servicePort = flag.String("service.port", "9009", "service port")
-		zipkinURL   = flag.String("zipkin.url", "http://114.67.98.210:9411/api/v2/spans", "Zipkin server url")
+		zipkinURL   = flag.String("zipkin.url", "http://127.0.0.1:9411/api/v2/spans", "Zipkin server url")
 		grpcAddr    = flag.String("grpc", ":9008", "gRPC listen address.")
 	)
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/service"
 	"github.com/go-kit/kit/log"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/service"
 	"time"
 )
 

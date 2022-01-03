@@ -22,7 +22,7 @@ const (
 	hostPort = "0.0.0.0:0"
 
 	// Endpoint to send Zipkin spans to.
-	zipkinHTTPEndpoint = "http://114.67.98.210:9411/api/v1/spans"
+	zipkinHTTPEndpoint = "http://localhost:9411/api/v1/spans"
 
 	// Debug mode.
 	debug = false
@@ -73,9 +73,9 @@ func main() {
 	ctx := opentracing.ContextWithSpan(context.Background(), span)
 
 	// Call the Concat Method
-	span.LogEvent("Call Concat")
-	res1, err := client.Concat(ctx, "Hello", " World!")
-	fmt.Printf("Concat: %s Err: %+v\n", res1, err)
+	//span.LogEvent("Call Concat")
+	//res1, err := client.Concat(ctx, "gauge", " 2009!")
+	//fmt.Printf("Concat: %s Err: %+v\n", res1, err)
 
 	// Call the Sum Method
 	span.LogEvent("Call Sum")

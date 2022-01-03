@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/pb"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/endpoint"
+	//"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/pb"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/pb"
+	//"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/endpoint"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/endpoint"
 	"github.com/pkg/errors"
 )
 

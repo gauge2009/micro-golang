@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/client"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/pb"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/endpoint"
 	"github.com/go-kit/kit/transport/grpc"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/client"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/pb"
-	"github.com/longjoy/micro-go-book/ch12-trace/zipkin-kit/string-service/endpoint"
 )
 
 type grpcServer struct {
