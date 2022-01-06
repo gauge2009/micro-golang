@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/pb"
 	edpts "github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/endpoint"
+	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/plugins"
 	"github.com/gauge2009/micro-golang/ch12-trace/zipkin-kit/string-service/service"
 	"github.com/go-kit/kit/log"
 	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
@@ -69,7 +70,7 @@ func main() {
 	svc = service.StringService{}
 
 	// add logging middleware to service
-	svc = LoggingMiddleware(logger)(svc)
+	svc = plugins.LoggingMiddleware(logger)(svc)
 
 	endpoint := edpts.MakeStringEndpoint(ctx, svc)
 	endpoint = kitzipkin.TraceEndpoint(zipkinTracer, "string-endpoint")(endpoint)
@@ -85,10 +86,10 @@ func main() {
 	}
 
 	//创建http.Handler
-	r := MakeHttpHandler(ctx, endpts, zipkinTracer, logger)
+	r := plugins.MakeHttpHandler(ctx, endpts, zipkinTracer, logger)
 
 	//创建注册对象
-	registar := Register(*consulHost, *consulPort, *serviceHost, *servicePort, logger)
+	registar := plugins.Register(*consulHost, *consulPort, *serviceHost, *servicePort, logger)
 
 	go func() {
 		fmt.Println("Http Server start at port:" + *servicePort)
@@ -107,7 +108,7 @@ func main() {
 		}
 		serverTracer := kitzipkin.GRPCServerTrace(zipkinTracer, kitzipkin.Name("string-grpc-transport"))
 
-		handler := NewGRPCServer(ctx, endpts, serverTracer)
+		handler := plugins.NewGRPCServer(ctx, endpts, serverTracer)
 		gRPCServer := grpc.NewServer()
 		pb.RegisterStringServiceServer(gRPCServer, handler)
 		errChan <- gRPCServer.Serve(listener)

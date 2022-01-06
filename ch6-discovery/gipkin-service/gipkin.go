@@ -27,13 +27,12 @@ func main() {
 	//	"AtsInspectExecute", "RabbitMQInitialize begin")
 
 	// 获取命令行参数
-	var (
-		servicePort = flag.Int("service.port", 21212, "service port")
-		serviceHost = flag.String("service.host", "127.0.0.1", "service host")
-		consulPort  = flag.Int("consul.port", 8500, "consul port")
-		consulHost  = flag.String("consul.host", "127.0.0.1", "consul host")
-		serviceName = flag.String("service.name", "Gipkin", "service name")
-	)
+
+	servicePort := flag.Int("service.port", 21212, "service port")
+	serviceHost := flag.String("service.host", "127.0.0.1", "service host")
+	consulPort := flag.Int("consul.port", 8500, "consul port")
+	consulHost := flag.String("consul.host", "127.0.0.1", "consul host")
+	serviceName := flag.String("service.name", "Gipkin", "service name")
 
 	flag.Parse()
 

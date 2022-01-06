@@ -21,35 +21,6 @@ import (
 	"github.com/gauge2009/micro-golang/gedis-benchmark/cacheClient"
 )
 
-/// 用于链路跟踪：
-const (
-	// Our service name.
-	serviceName = "client"
-
-	// Host + port of our service.
-	hostPort = "0.0.0.0:0"
-
-	// Endpoint to send Zipkin spans to.
-	zipkinHTTPEndpoint = "http://localhost:9411/api/v1/spans"
-
-	// Debug mode.
-	debug = false
-
-	// Base endpoint of our SVC1 service.
-	svc1Endpoint = "http://localhost:61001"
-
-	// same span can be set to true for RPC style spans (Zipkin V1) vs Node style (OpenTracing)
-	sameSpan = true
-
-	// make Tracer generate 128 bit traceID's for root spans.
-	traceID128Bit = true
-)
-
-// Service constants
-const (
-	StrMaxSize = 1024
-)
-
 // Service errors
 var (
 	ErrMaxSize = errors.New("maximum size of 1024 bytes exceeded")
@@ -128,9 +99,10 @@ func (this *Task_link_trace) TableName() string {
 type GipkinService struct {
 }
 
+///██████████████████████████████████████████████████████████████████
 //http://127.0.0.1:21212/op/DoTrace/gauge202112301916/RabbitMQ_To_Worker/12345678-415d-40e1-987a-17a24f83f47c/ATSINSPECT/AtsTaskService/Debug/HRLink.BackendService.AtsInspectService/AtsInspectExecute/持久化完成
 func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, Level string, ClassName string, MethodName string, LocationDesc string) (string, error) {
-	Trace(BizCode)
+	//Trace(BizCode)
 	decimal.DivisionPrecision = 4 // 保留4位小数，如有更多位，则进行四舍五入保留两位小数
 	// github.com/denisenkom/go-mssqldb
 	dsn := "sqlserver://sa:sparksubmit666@localhost/hive?database=ai_cop"
@@ -166,7 +138,9 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 	}
 
 	/// 调用zipkin
-	Trace(BizCode)
+	//TraceByZipkin(BizCode)
+	svc_name := BizCode + "@" + TraceID
+	TraceByZipkin(svc_name, SpanID, BizCode, ParentID, ClassName, MethodName, LocationDesc)
 
 	// Read
 	var task_link_trace Task_link_trace
@@ -186,60 +160,136 @@ func (s GipkinService) DoTrace(KeyID string, SpanID string, TraceID string, BizC
 	return "success", nil
 }
 
-// 链路跟踪主方法
-func Trace(serviceName string) {
-	// Create our HTTP collector.
-	collector, err := zipkin.NewHTTPCollector(zipkinHTTPEndpoint)
-	if err != nil {
-		fmt.Printf("unable to create Zipkin HTTP collector: %+v\n", err)
-		os.Exit(-1)
-	}
-	// Create our recorder.
-	//recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
-	recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
-	// Create our tracer.
-	tracer, err := zipkin.NewTracer(
-		recorder,
-		zipkin.ClientServerSameSpan(sameSpan),
-		zipkin.TraceID128Bit(traceID128Bit),
-	)
-	if err != nil {
-		fmt.Printf("unable to create Zipkin tracer: %+v\n", err)
-		os.Exit(-1)
-	}
+/// 用于链路跟踪：
+const (
+	// Our service name.
+	//serviceName = "DoTrace_Service"
 
-	// Explicitly set our tracer to be the default tracer.
-	opentracing.InitGlobalTracer(tracer)
+	// Host + port of our service.
+	hostPort = "0.0.0.0:0"
+
+	// Endpoint to send Zipkin spans to.
+	zipkinHTTPEndpoint = "http://localhost:9411/api/v1/spans"
+
+	// Debug mode.
+	debug = false
+
+	// Base endpoint of our SVC1 service.
+	svc1Endpoint = "http://localhost:61001"
+
+	// same span can be set to true for RPC style spans (Zipkin V1) vs Node style (OpenTracing)
+	sameSpan = true
+
+	// make Tracer generate 128 bit traceID's for root spans.
+	traceID128Bit = true
+)
+
+// Service constants
+const (
+	StrMaxSize = 1024
+)
+
+var tracer opentracing.Tracer // 全局变量
+// 创建环境变量
+var (
+//consulHost = flag.String("consul.host", "127.0.0.1", "consul server ip address")
+//consulPort = flag.String("consul.port", "8500", "consul server port")
+//zipkinURL  = flag.String("zipkin.url", "http://127.0.0.1:9411/api/v2/spans", "Zipkin server url")
+)
+
+// █ █ █ █ █ 获取单例对象的方法，引用传递返回
+// █ █ █ █ █ serviceName 可以把多行trace串起来的唯一标识——如考勤审查批次ID
+func GetTracer(serviceName string) opentracing.Tracer {
+	if tracer == nil {
+		// Create our HTTP collector.
+		collector, err := zipkin.NewHTTPCollector(zipkinHTTPEndpoint)
+		if err != nil {
+			fmt.Printf("unable to create Zipkin HTTP collector: %+v\n", err)
+			os.Exit(-1)
+		}
+		// Create our recorder.
+		//recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
+		recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
+		// Create our tracer.
+		tracer, err = zipkin.NewTracer(
+			recorder,
+			zipkin.ClientServerSameSpan(sameSpan),
+			zipkin.TraceID128Bit(traceID128Bit),
+		)
+		if err != nil {
+			fmt.Printf("unable to create Zipkin tracer: %+v\n", err)
+			os.Exit(-1)
+		}
+
+		// Explicitly set our tracer to be the default tracer.
+		opentracing.InitGlobalTracer(tracer)
+
+		fmt.Println("zipkin.Tracer in gateway 实例化一次")
+		//zipkinTracer = new(Tracer)
+	}
+	return tracer
+}
+
+// █ █ █ █ █ 链路跟踪主方法 █ █ █ █ █
+func TraceByZipkin(serviceName string, SpanID string, BizCode string, ParentID string, ClassName string, MethodName string, LocationDesc string) {
+	//// Create our HTTP collector.
+	//collector, err := zipkin.NewHTTPCollector(zipkinHTTPEndpoint)
+	//if err != nil {
+	//	fmt.Printf("unable to create Zipkin HTTP collector: %+v\n", err)
+	//	os.Exit(-1)
+	//}
+	//// Create our recorder.
+	////recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
+	//recorder := zipkin.NewRecorder(collector, debug, hostPort, serviceName)
+	//// Create our tracer.
+	//tracer, err := zipkin.NewTracer(
+	//	recorder,
+	//	zipkin.ClientServerSameSpan(sameSpan),
+	//	zipkin.TraceID128Bit(traceID128Bit),
+	//)
+	//if err != nil {
+	//	fmt.Printf("unable to create Zipkin tracer: %+v\n", err)
+	//	os.Exit(-1)
+	//}
+	//
+	//// Explicitly set our tracer to be the default tracer.
+	tracer = GetTracer(serviceName)
+
+	//opentracing.InitGlobalTracer(tracer)
 
 	//// Create Client to svc1 Service
 	//client := svc1.NewHTTPClient(tracer, svc1Endpoint)
 
 	// Create Root Span for duration of the interaction with svc1
-	span := opentracing.StartSpan("Run")
+	span := opentracing.StartSpan(SpanID)
 
 	// Put root span in context so it will be used in our calls to the client.
 	ctx := opentracing.ContextWithSpan(context.Background(), span)
 
 	//// Call the Concat Method
-	span.LogEvent("Call step1")
+	span.LogEvent("Trace id =" + serviceName + "; SpanID =" + SpanID + "; BizCode =" + BizCode + "; ParentID =" + ParentID + "; ClassName =" + ClassName + "; MethodName =" + MethodName + "; LocationDesc =" + LocationDesc)
 	//res1, err := client.Concat(ctx, "Hello", " World!")
 	//fmt.Printf("Concat: %s Err: %+v\n", res1, err)
 	span = opentracing.SpanFromContext(ctx)
-	span.SetTag("step1", serviceName)
+	span.SetTag("BizCode", BizCode)
 
 	//
 	//// Call the Sum Method
-	span.LogEvent("Call step2")
+	span.LogEvent("备注：Trace id就如审查批次ID | SpanID 对应长时任务在当前分布式系统中执行到了那个阶段 ")
 	//res2, err := client.Sum(ctx, 10, 20)
 	//fmt.Printf("Sum: %d Err: %+v\n", res2, err)
 	span = opentracing.SpanFromContext(ctx)
-	span.SetTag("step2", serviceName)
+	span.SetTag("本阶段名称", SpanID)
+	span.SetTag("上个阶段名称", ParentID)
+	span.SetTag("程序类", ClassName)
+	span.SetTag("所在方法或函数名", MethodName)
+	span.SetTag("补充信息", LocationDesc)
 
 	// Finish our CLI span
 	span.Finish()
 
 	// Close collector to ensure spans are sent before exiting.
-	collector.Close()
+	//collector.Close()
 }
 
 func BuildEntity(KeyID string, SpanID string, TraceID string, BizCode string, ParentID string, CreateDatetime time.Time, Level string, ClassName string, MethodName string, LocationDesc string) *Task_link_trace {

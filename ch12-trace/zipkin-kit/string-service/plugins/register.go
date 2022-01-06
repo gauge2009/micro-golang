@@ -1,4 +1,4 @@
-package main
+package plugins
 
 import (
 	"github.com/go-kit/kit/log"

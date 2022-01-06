@@ -35,27 +35,49 @@ func main() {
 		logger = log.With(logger, "caller", log.DefaultCaller)
 	}
 
-	var zipkinTracer *zipkin.Tracer
-	{
-		var (
-			err           error
-			hostPort      = "localhost:9292"
-			serviceName   = "gateway-service"
-			useNoopTracer = (*zipkinURL == "")
-			reporter      = zipkinhttp.NewReporter(*zipkinURL)
-		)
-		defer reporter.Close()
-		zEP, _ := zipkin.NewEndpoint(serviceName, hostPort)
-		zipkinTracer, err = zipkin.NewTracer(
-			reporter, zipkin.WithLocalEndpoint(zEP), zipkin.WithNoopTracer(useNoopTracer),
-		)
-		if err != nil {
-			logger.Log("err", err)
-			os.Exit(1)
-		}
-		if !useNoopTracer {
-			logger.Log("tracer", "Zipkin", "type", "Native", "URL", *zipkinURL)
-		}
+	//var zipkinTracer *zipkin.Tracer
+	//{
+	//	var (
+	//		err           error
+	//		hostPort      = "localhost:9292"
+	//		serviceName   = "gateway-service"
+	//		useNoopTracer = (*zipkinURL == "")
+	//		reporter      = zipkinhttp.NewReporter(*zipkinURL)
+	//	)
+	//	defer reporter.Close()
+	//	zEP, _ := zipkin.NewEndpoint(serviceName, hostPort)
+	//	zipkinTracer, err = zipkin.NewTracer(
+	//		reporter, zipkin.WithLocalEndpoint(zEP), zipkin.WithNoopTracer(useNoopTracer),
+	//	)
+	//	if err != nil {
+	//		logger.Log("err", err)
+	//		os.Exit(1)
+	//	}
+	//	if !useNoopTracer {
+	//		logger.Log("tracer", "Zipkin", "type", "Native", "URL", *zipkinURL)
+	//	}
+	//}
+
+	var (
+		err           error
+		hostPort      = "localhost:9292"
+		serviceName   = "gateway-service"
+		useNoopTracer = (*zipkinURL == "")
+		reporter      = zipkinhttp.NewReporter(*zipkinURL)
+	)
+	defer reporter.Close()
+	zEP, _ := zipkin.NewEndpoint(serviceName, hostPort)
+	zipkinTracer, err := zipkin.NewTracer(
+		reporter, zipkin.WithLocalEndpoint(zEP), zipkin.WithNoopTracer(useNoopTracer),
+	)
+	//fmt.Println(zipkinTracer.)
+
+	if err != nil {
+		logger.Log("err", err)
+		os.Exit(1)
+	}
+	if !useNoopTracer {
+		logger.Log("tracer", "Zipkin", "type", "Native", "URL", *zipkinURL)
 	}
 
 	// 创建consul api客户端
